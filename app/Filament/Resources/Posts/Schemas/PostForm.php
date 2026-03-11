@@ -47,7 +47,7 @@ class PostForm
                                     ->required()
                                     ->maxLength(255)
                                     ->live(onBlur: true)
-                                    ->unique(Post::class, 'slug', ignoreRecord: true)
+                                    ->unique(ignoreRecord: true)
                                     ->regex('/^[a-z0-9]+(?:-[a-z0-9]+)*$/')
                                     ->validationMessages([
                                         'unique' => '這個網址別名 (Slug) 已經被使用了，請更換內容。',
