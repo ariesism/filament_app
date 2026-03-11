@@ -1,0 +1,110 @@
+<?php
+
+namespace App\Filament\Resources\Posts\Schemas;
+
+use App\Models\Post;
+use Filament\Forms\Components\Checkbox;
+use Filament\Forms\Components\ColorPicker;
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\MarkdownEditor;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TagsInput;
+use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Group;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
+use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
+use Illuminate\Support\Str;
+
+class PostForm
+{
+    public static function configure(Schema $schema): Schema
+    {
+        return $schema
+            ->components([
+                Section::make('Fields')
+                    ->description('Fill all the fields')
+                    ->icon(Heroicon::PencilSquare)
+                    ->schema([
+                        Group::make()
+                            ->schema([
+                                TextInput::make('title')
+                                    ->label('Title')
+                                    ->required()
+                                    ->maxLength(255)
+                                    ->live(onBlur: true)
+                                    ->afterStateUpdated(function (Set $set, Get $get, ?string $state, $context) {
+                                        if ($context === 'edit' && !blank($get('slug'))) {
+                                            return;
+                                        }
+                                        $set('slug', Str::slug($state));
+                                    }),
+                                TextInput::make('slug')
+                                    ->label(fn ($context) => "URL Slug (" . ucfirst($context) . " Mode)")
+                                    ->required()
+                                    ->maxLength(255)
+                                    ->live(onBlur: true)
+                                    ->unique(Post::class, 'slug', ignoreRecord: true)
+                                    ->regex('/^[a-z0-9]+(?:-[a-z0-9]+)*$/')
+                                    ->validationMessages([
+                                        'unique' => '這個網址別名 (Slug) 已經被使用了，請更換內容。',
+                                        'regex' => 'Slug 只能包含小寫英文、數字與連字號 (-)。',
+                                    ])
+                                    ->helperText('這會作為文章的網址。若清空並修改標題，系統會重新生成。'),
+                                Select::make('category_id')
+                                    ->label('Category')
+                                    ->relationship('category', 'name')
+                                    ->required(),
+                                ColorPicker::make('color')
+                                    ->label('Post Color')
+                                    ->required(),
+                            ])->columns(2),
+                        MarkdownEditor::make('content')
+                            ->label('Content')
+                            ->required(),
+                    ])->columnSpan(2),
+                Group::make([
+                    Section::make('Media')
+                        ->description('Upload images')
+                        ->icon(Heroicon::Photo)
+                        ->schema([
+                            FileUpload::make('image')
+                            ->label('Featured Image')
+                            ->image()
+                            ->disk('public')
+                            ->directory('posts'),
+                    ]),
+                    Section::make('Metadata')
+                        ->description('Additional information about the post')
+                        ->icon(Heroicon::InformationCircle)
+                        ->schema([
+                            TagsInput::make('tags')
+                                ->label('Tags')
+                                ->required()
+                                ->trim()
+                                ->rules(['array', 'max:5'])
+                                ->validationMessages([
+                                    'max' => 'You cannot add more than 5 tags.',
+                                ])
+                                ->helperText('Add up to 5 tags. Press Enter after each tag.'),
+                            Checkbox::make('is_published')
+                                ->label('Is Published'),
+                            DateTimePicker::make('published_at')
+                                ->label('Published At')
+                                ->required()
+                                ->native(false)
+                                ->seconds(false)
+                                ->minDate(now())
+                                ->after('now')
+                                ->validationMessages([
+                                    'after' => 'The publication time must be a future time.',
+                                ])
+                                ->helperText('Select the date and time when the post should be published.'),
+                        ])
+                ])->columnSpan(1),
+            ])->columns(3);
+    }
+}
