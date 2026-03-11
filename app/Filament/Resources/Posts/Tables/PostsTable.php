@@ -7,6 +7,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Table;
 
 class PostsTable
@@ -15,9 +16,20 @@ class PostsTable
     {
         return $table
             ->columns([
-                ImageColumn::make('image')->label('Image')->disk('public'),
-                TextColumn::make('title')->label('Title')->searchable()->sortable(),
-                TextColumn::make('category.name')->label('Category')->searchable()->sortable(),
+                ImageColumn::make('image')
+                    ->label('Image')
+                    ->disk('public'),
+                TextColumn::make('category.name')
+                    ->label('Category')
+                    ->searchable()
+                    ->sortable(),
+                ToggleColumn::make('is_published')
+                    ->label('Published')
+                    ->sortable(),
+                TextColumn::make('title')
+                    ->label('Title')
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('published_at')
                     ->label('Published At')
                     ->dateTime('Y-m-d H:i')

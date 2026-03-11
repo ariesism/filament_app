@@ -91,17 +91,36 @@ class PostForm
                                 ])
                                 ->helperText('Add up to 5 tags. Press Enter after each tag.'),
                             Checkbox::make('is_published')
-                                ->label('Is Published'),
+                                ->label('Published'),
                             DateTimePicker::make('published_at')
                                 ->label('Published At')
                                 ->required()
                                 ->native(false)
                                 ->seconds(false)
-                                ->minDate(now())
-                                ->after('now')
-                                ->validationMessages([
-                                    'after' => 'The publication time must be a future time.',
+
+                                ->minDate(fn ($context, $record) => 
+                                    ($context === 'edit' && $record?->published_at?->isPast()) 
+                                        ? $record->published_at 
+                                        : now()
+                                )
+                                ->rules([
+                                    fn ($get, $context, $record): \Closure => function (string $attribute, $value, \Closure $fail) use ($get, $context, $record) {
+                                        $inputTime = strtotime($value);
+                                        $originalTime = $record?->published_at ? strtotime($record->published_at) : null;
+
+                                        // 只有當「時間被改動了」才需要檢查是不是選了過去的時間
+                                        if ($inputTime !== $originalTime) {
+                                            // 允許 1 分鐘誤差，避免填表太久
+                                            if ($inputTime < (time() - 60)) {
+                                                $fail('如果要修改發布時間，請選擇一個未來的時間點。');
+                                            }
+                                        }
+                                    },
                                 ])
+                                ->helperText(fn ($record) => $record?->published_at?->isPast() 
+                                    ? '這篇文章已經發布。修改時間將會改變它在前端的排序。' 
+                                    : '設定預約發布的時間。'
+                                )
                                 ->helperText('Select the date and time when the post should be published.'),
                         ])
                 ])->columnSpan(1),
