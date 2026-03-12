@@ -5,9 +5,12 @@ namespace App\Filament\Resources\Posts\Tables;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\DatePicker;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
 class PostsTable
@@ -34,9 +37,33 @@ class PostsTable
                     ->label('Published At')
                     ->dateTime('Y-m-d H:i')
                     ->sortable(),
-            ])
+            ])->defaultSort('published_at', 'desc')
             ->filters([
-                //
+                SelectFilter::make('category_id')
+                    ->label('Category')
+                    ->relationship('category', 'name')
+                    ->searchable()
+                    ->multiple()
+                    ->preload(),
+                Filter::make('published_at')
+                    ->label('Published At')
+                    ->schema([
+                        DatePicker::make('published_from')
+                            ->label('Published From'),
+                        DatePicker::make('published_until')
+                            ->label('Published Until'),
+                    ])
+                    ->query(function ($query, $data) {
+                        if ($data['published_from']) {
+                            $query->whereDate('published_at', '>=', $data['published_from']);
+                        }
+                        if ($data['published_until']) {
+                            $query->whereDate('published_at', '<=', $data['published_until']);
+                        }
+                    }),
+                Filter::make('is_published')
+                    ->label('Published')
+                    ->query(fn ($query) => $query->where('is_published', true)),
             ])
             ->recordActions([
                 EditAction::make(),
