@@ -33,6 +33,8 @@ class ProductForm
                                         ->required()
                                         ->unique(ignoreRecord: true),
                                 ])->columns(2),
+                            TextInput::make('category')
+                                ->label('Category'),
                             MarkdownEditor::make('description')
                                 ->label('Description'),
                         ]),
