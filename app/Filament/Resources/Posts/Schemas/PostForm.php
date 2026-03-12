@@ -97,7 +97,6 @@ class PostForm
                                 ->required()
                                 ->native(false)
                                 ->seconds(false)
-
                                 ->minDate(fn ($context, $record) => 
                                     ($context === 'edit' && $record?->published_at?->isPast()) 
                                         ? $record->published_at 
