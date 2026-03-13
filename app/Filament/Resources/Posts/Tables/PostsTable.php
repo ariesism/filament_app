@@ -6,6 +6,8 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\DatePicker;
+use Filament\Tables\Columns\ColorColumn;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ToggleColumn;
@@ -24,18 +26,34 @@ class PostsTable
                     ->disk('public'),
                 TextColumn::make('category.name')
                     ->label('Category')
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->searchable()
-                    ->sortable(),
-                ToggleColumn::make('is_published')
-                    ->label('Published')
                     ->sortable(),
                 TextColumn::make('title')
                     ->label('Title')
                     ->searchable()
                     ->sortable(),
+                ColorColumn::make('color')
+                    ->label('Color')
+                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('tags')
+                    ->label('Tags')
+                    ->badge()
+                    ->color('info')
+                    ->toggleable(isToggledHiddenByDefault: true),
+                IconColumn::make('is_published')
+                    ->label('Published')
+                    ->boolean()
+                    ->sortable(),
                 TextColumn::make('published_at')
                     ->label('Published At')
                     ->dateTime('Y-m-d H:i')
+                    ->toggleable(isToggledHiddenByDefault: true)
+                    ->sortable(),
+                TextColumn::make('created_at')
+                    ->label('Created At')
+                    ->dateTime('Y-m-d H:i')
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->sortable(),
             ])->defaultSort('published_at', 'desc')
             ->filters([
