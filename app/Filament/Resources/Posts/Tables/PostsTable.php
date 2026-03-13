@@ -2,15 +2,18 @@
 
 namespace App\Filament\Resources\Posts\Tables;
 
+use App\Models\Post;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\DatePicker;
 use Filament\Tables\Columns\ColorColumn;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -84,7 +87,24 @@ class PostsTable
                     ->query(fn ($query) => $query->where('is_published', true)),
             ])
             ->recordActions([
+                Action::make('status')
+                    ->label('Status')
+                    ->icon('heroicon-o-document-check')
+                    ->mountUsing(function ($form, Post $record) {
+                        $form->fill([
+                            'is_published' => $record->is_published,
+                        ]);
+                    })
+                    ->schema([
+                        Checkbox::make('is_published')
+                            ->label('Published'),
+                    ])
+                    ->action(function (array $data, $record) {
+                        $record->is_published = $data['is_published'];
+                        $record->save();
+                    }),
                 EditAction::make(),
+                DeleteAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
