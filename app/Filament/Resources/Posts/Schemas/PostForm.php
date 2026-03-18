@@ -2,14 +2,13 @@
 
 namespace App\Filament\Resources\Posts\Schemas;
 
-use App\Models\Post;
+use App\Models\Tag;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\MarkdownEditor;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
@@ -81,15 +80,31 @@ class PostForm
                         ->description('Additional information about the post')
                         ->icon(Heroicon::InformationCircle)
                         ->schema([
-                            TagsInput::make('tags')
+                            Select::make('tags')
                                 ->label('Tags')
-                                ->required()
-                                ->trim()
-                                ->rules(['array', 'max:5'])
-                                ->validationMessages([
-                                    'max' => 'You cannot add more than 5 tags.',
+                                ->relationship('tags', 'name')
+                                ->multiple()
+                                ->searchable()
+                                ->preload()
+                                ->maxItems(5)
+                                ->rules(['array'])
+                                ->helperText('Select up to 5 tags.')
+                                ->createOptionForm([
+                                    TextInput::make('name')
+                                        ->required()
+                                        ->maxLength(50),
                                 ])
-                                ->helperText('Add up to 5 tags. Press Enter after each tag.'),
+                                ->noSearchResultsMessage('No tags found. You can create one.')
+                                ->createOptionForm([
+                                    TextInput::make('name')
+                                        ->required()
+                                        ->maxLength(50),
+                                ])
+                                ->createOptionUsing(function (array $data) {
+                                    return Tag::firstOrCreate([
+                                        'name' => $data['name'],
+                                    ])->id;
+                                }),
                             Checkbox::make('is_published')
                                 ->label('Published'),
                             DateTimePicker::make('published_at')
