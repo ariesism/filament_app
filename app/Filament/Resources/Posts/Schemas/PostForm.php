@@ -109,7 +109,6 @@ class PostForm
                                 ->label('Published'),
                             DateTimePicker::make('published_at')
                                 ->label('Published At')
-                                ->required()
                                 ->native(false)
                                 ->seconds(false)
                                 ->minDate(fn ($context, $record) => 
