@@ -20,7 +20,7 @@ class CategoryForm
                     ->required()
                     ->maxLength(255)
                     ->live(onBlur: true) // 離開輸入框時觸發驗證與連動
-                    ->unique(Category::class, 'name', ignoreRecord: true)
+                    ->unique(ignoreRecord: true)
                     ->validationMessages([
                         'unique' => 'This category name has already been taken.',
                     ])
@@ -38,7 +38,7 @@ class CategoryForm
                     ->maxLength(255)
                     ->live(onBlur: true)
                     ->afterStateUpdated(fn (Set $set, ?string $state) => $set('slug', Str::lower($state)))
-                    ->unique(Category::class, 'slug', ignoreRecord: true)
+                    ->unique(ignoreRecord: true)
                     ->regex('/^[a-z0-9]+(?:-[a-z0-9]+)*$/')
                     ->validationMessages([
                         'regex' => 'The slug must only contain lowercase letters, numbers, and hyphens.',
