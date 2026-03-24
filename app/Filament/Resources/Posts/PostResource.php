@@ -24,6 +24,16 @@ class PostResource extends Resource
     protected static ?int $navigationSort = 1;
     protected static ?string $recordTitleAttribute = 'title';
 
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count();
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return static::getModel()::count() == 0 ? 'warning' : 'info';
+    }
+
     public static function form(Schema $schema): Schema
     {
         return PostForm::configure($schema);
