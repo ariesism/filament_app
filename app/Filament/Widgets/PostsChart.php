@@ -9,6 +9,9 @@ use Flowframe\Trend\TrendValue;
 
 class PostsChart extends ChartWidget
 {
+    protected static ?int $sort = 2;
+    protected int|string|array $columnSpan = 'full';
+    protected ?string $maxHeight = '250px';
     protected ?string $heading = 'Posts Created Over Time';
     protected string $color = 'info';
     protected ?string $pollingInterval = null;
