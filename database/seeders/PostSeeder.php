@@ -46,6 +46,9 @@ class PostSeeder extends Seeder
                 'slug' => Str::slug($country),
             ]);
 
+            $createdAt = now()->subDays(rand(0, 365));
+            $publishedAt = (clone $createdAt)->addDays(rand(0, 15));
+
             $post = Post::create([
                 'title' => $title,
                 'slug' => Post::generateUniqueSlug($title),
@@ -54,7 +57,9 @@ class PostSeeder extends Seeder
                 'image' => 'https://picsum.photos/seed/' . Str::slug($title) . '/800/600',
                 'content' => fake()->paragraphs(5, true),
                 'is_published' => true,
-                'published_at' => now()->subDays(rand(0, 30)),
+                'published_at' => $publishedAt,
+                'created_at' => $createdAt,
+                'updated_at' => $createdAt,
             ]);
 
             $weightedTags = $allTags->merge(

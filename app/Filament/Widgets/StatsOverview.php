@@ -7,8 +7,6 @@ use App\Models\Product;
 use App\Models\User;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
-use GuzzleHttp\Handler\Proxy;
-use PDO;
 
 class StatsOverview extends StatsOverviewWidget
 {
