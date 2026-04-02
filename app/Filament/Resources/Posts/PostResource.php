@@ -7,6 +7,7 @@ use App\Filament\Resources\Posts\Pages\EditPost;
 use App\Filament\Resources\Posts\Pages\ListPosts;
 use App\Filament\Resources\Posts\Schemas\PostForm;
 use App\Filament\Resources\Posts\Tables\PostsTable;
+use App\Filament\Resources\Posts\Widgets\PostCategoryChart;
 use App\Models\Post;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -48,6 +49,13 @@ class PostResource extends Resource
     {
         return [
             //
+        ];
+    }
+
+    public static function getWidgets(): array
+    {
+        return [
+            PostCategoryChart::class,
         ];
     }
 
