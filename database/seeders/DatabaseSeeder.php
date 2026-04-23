@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             TagSeeder::class,
             PostSeeder::class,
+            RolePermissionSeeder::class,
             FilamentUserSeeder::class,
         ]);
     }
