@@ -2,9 +2,11 @@
 
 namespace Database\Seeders;
 
+use App\Enums\RoleEnum;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Spatie\Permission\Models\Role;
 
 class FilamentUserSeeder extends Seeder
 {
@@ -13,24 +15,44 @@ class FilamentUserSeeder extends Seeder
      */
     public function run(): void
     {
-        User::updateOrCreate(
-            ['email' => 'admin@example.com'],
+
+
+        $superAdmin = User::updateOrCreate(
+            ['email' => 'edison@example.com'],
             [
-                'name' => 'Admin',
+                'name' => 'Edison',
                 'password' => bcrypt('password123'),
             ]
+        );
+        $superAdmin->syncRoles([RoleEnum::Super_Admin->value]);
+
+        $roles = array_filter(
+            RoleEnum::cases(),
+            fn ($role) => $role !== RoleEnum::Super_Admin
         );
 
-        User::updateOrCreate(
-            ['email' => 'test@example.com'],
-            [
-                'name' => 'Test User',
-                'password' => bcrypt('password123'),
-            ]
-        );
+        foreach ($roles as $roleEnum) {
+
+            $role = Role::firstOrCreate([
+                'name' => $roleEnum->value,
+            ]);
+
+            $user = User::firstOrCreate(
+                ['email' => $roleEnum->value . '@example.com'],
+                [
+                    'name' => ucfirst($roleEnum->value),
+                    'password' => bcrypt('password123'),
+                ]
+            );
+
+            $user->syncRoles([$role]);
+        }
 
         User::factory()
             ->count(5)
-            ->create();
+            ->create()
+            ->each(function ($user) {
+                $user->syncRoles([[RoleEnum::User->value]]);
+            });
     }
 }
