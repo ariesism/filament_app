@@ -2,13 +2,32 @@
 
 namespace App\Models;
 
+use App\Observers\PostObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Str;
 
+#[ObservedBy([PostObserver::class])]
 class Post extends Model
 {
+    public const NAV_BADGE_CACHE_KEY = 'posts.count';
+
+    public static function clearCountCache(): void
+    {
+        cache()->forget(self::NAV_BADGE_CACHE_KEY);
+    }
+
+    public static function cachedCount(): int
+    {
+        return cache()->remember(
+            self::NAV_BADGE_CACHE_KEY,
+            now()->addMinutes(5),
+            fn () => self::count()
+        );
+    }
+
     protected $fillable = [
         'title',
         'slug',
