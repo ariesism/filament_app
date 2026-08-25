@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Enums\RoleEnum;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Artisan;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -15,6 +16,14 @@ class RolePermissionSeeder extends Seeder
      */
     public function run(): void
     {
+        Artisan::call('shield:generate', [
+            '--all' => true,
+            '--option' => 'permissions',
+            '--panel' => 'admin',
+            '--no-interaction' => true,
+            '--silent' => true,
+        ]);
+
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
         $permissions = Permission::all();
@@ -48,8 +57,8 @@ class RolePermissionSeeder extends Seeder
 
         // editor（內容相關）
         $editor->syncPermissions(
-            $permissions->filter(fn ($p) =>
-                str_contains($p->name, 'post')
+            $permissions->filter(fn ($permission) =>
+                str_contains(strtolower($permission->name), 'post')
             )
         );
 

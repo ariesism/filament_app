@@ -15,8 +15,6 @@ class FilamentUserSeeder extends Seeder
      */
     public function run(): void
     {
-
-
         $superAdmin = User::updateOrCreate(
             ['email' => 'edison@example.com'],
             [
