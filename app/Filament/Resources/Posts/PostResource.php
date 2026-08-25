@@ -32,7 +32,7 @@ class PostResource extends Resource
 
     public static function getNavigationBadgeColor(): ?string
     {
-        return static::getModel()::count() == 0 ? 'warning' : 'info';
+        return static::getModel()::cachedCount() === 0 ? 'warning' : 'info';
     }
 
     public static function form(Schema $schema): Schema

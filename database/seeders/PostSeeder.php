@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Category;
 use App\Models\Post;
 use App\Models\Tag;
+use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
@@ -35,6 +36,11 @@ class PostSeeder extends Seeder
         ];
 
         $allTags = Tag::all();
+        $userIds = User::query()->pluck('id');
+
+        if ($userIds->isEmpty()) {
+            throw new \RuntimeException('No users found. Run FilamentUserSeeder before PostSeeder.');
+        }
 
         for ($i = 0; $i < 50; $i++) {
             $country = $countries[array_rand($countries)];
@@ -52,6 +58,7 @@ class PostSeeder extends Seeder
             $post = Post::create([
                 'title' => $title,
                 'slug' => Post::generateUniqueSlug($title),
+                'user_id' => $userIds->random(),
                 'category_id' => $category->id,
                 'color' => $colors[array_rand($colors)],
                 'image' => 'https://picsum.photos/seed/' . Str::slug($title) . '/800/600',

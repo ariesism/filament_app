@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use App\Enums\RoleEnum;
 use App\Observers\PostObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Str;
@@ -19,18 +21,37 @@ class Post extends Model
         cache()->forget(self::NAV_BADGE_CACHE_KEY);
     }
 
-    public static function cachedCount(): int
+    public static function cachedCount(?User $user = null): int
     {
+        $user ??= auth()->user();
+        $cacheKey = self::NAV_BADGE_CACHE_KEY . '.' . ($user?->getAuthIdentifier() ?? 'guest');
+
         return cache()->remember(
-            self::NAV_BADGE_CACHE_KEY,
+            $cacheKey,
             now()->addMinutes(5),
-            fn () => self::count()
+            fn () => self::queryForUser($user)->count()
         );
+    }
+
+    public static function queryForUser(?User $user = null): Builder
+    {
+        $user ??= auth()->user();
+        return self::query()->forUser($user);
+    }
+
+    public function scopeForUser(Builder $query, ?User $user = null): Builder
+    {
+        if ($user?->hasRole(RoleEnum::Editor->value)) {
+            $query->where('user_id', $user->getAuthIdentifier());
+        }
+
+        return $query;
     }
 
     protected $fillable = [
         'title',
         'slug',
+        'user_id',
         'category_id',
         'color',
         'image',
@@ -64,6 +85,11 @@ class Post extends Model
         }
 
         return $slug;
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 
     public function category(): BelongsTo

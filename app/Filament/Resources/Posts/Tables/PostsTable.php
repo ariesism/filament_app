@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Posts\Tables;
 
+use App\Enums\RoleEnum;
 use App\Models\Post;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
@@ -17,18 +18,43 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Filament\Support\Icons\Heroicon;
 use Illuminate\Contracts\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 
 class PostsTable
 {
     public static function configure(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query) => $query->with(['category', 'tags']))
+            ->modifyQueryUsing(function (Builder $query): void {
+                $user = Auth::user();
+
+                $query->forUser($user);
+
+                $query->with(['category', 'tags', 'user']);
+            })
             ->columns([
+                TextColumn::make('id')
+                    ->label('Article ID')
+                    ->searchable()
+                    ->sortable()
+                    ->icon(Heroicon::ClipboardDocument)
+                    ->iconPosition('after')
+                    ->copyable()
+                    ->copyMessage('文章 ID 已複製')
+                    ->copyMessageDuration(1500),
                 ImageColumn::make('image')
                     ->label('Image')
                     ->disk('public'),
+                TextColumn::make('user.name')
+                    ->label('User Name')
+                    ->searchable()
+                    ->sortable()
+                    ->visible(fn (): bool => Auth::user()?->hasAnyRole([
+                        RoleEnum::Admin->value,
+                        RoleEnum::Super_Admin->value,
+                    ]) ?? false),
                 TextColumn::make('category.name')
                     ->label('Category')
                     ->toggleable(isToggledHiddenByDefault: true)
@@ -60,7 +86,14 @@ class PostsTable
                     ->dateTime('Y-m-d H:i')
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->sortable(),
-            ])->defaultSort('published_at', 'desc')
+            ])
+            ->searchPlaceholder(fn (): string => Auth::user()?->hasAnyRole([
+                RoleEnum::Admin->value,
+                RoleEnum::Super_Admin->value,
+            ])
+                ? '搜尋文章 ID、標題、分類或作者名稱'
+                : '搜尋文章 ID、標題或分類')
+            ->defaultSort('published_at', 'desc')
             ->filters([
                 SelectFilter::make('category_id')
                     ->label('Category')
@@ -92,6 +125,7 @@ class PostsTable
                 Action::make('status')
                     ->label('Status')
                     ->icon('heroicon-o-document-check')
+                    ->authorize(fn (Post $record): bool => Auth::user()?->can('update', $record) ?? false)
                     ->mountUsing(function ($form, Post $record) {
                         $form->fill([
                             'is_published' => $record->is_published,

@@ -14,7 +14,10 @@ class PostCategoryChart extends ChartWidget
 
     protected function getData(): array
     {
-        $categories = Category::withCount('posts')
+        $user = auth()->user();
+        $categories = Category::withCount([
+            'posts' => fn ($query) => $query->forUser($user),
+        ])
             ->orderBy('posts_count', 'desc')    
             ->get();
         $backgroundColors = $categories->map(function ($category) {
